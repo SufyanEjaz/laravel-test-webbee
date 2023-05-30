@@ -93,6 +93,33 @@ class MenuController extends BaseController
      */
 
     public function getMenuItems() {
-        throw new \Exception('implement in coding task 3');
+        $menuItems = MenuItem::with('children')->whereNull('parent_id')->get();
+
+        $nestedMenu = $menuItems->map(function ($menuItem) {
+            return $this->buildMenuItem($menuItem);
+        });
+
+        return $nestedMenu;
+        // throw new \Exception('implement in coding task 3');
+    }
+
+    private function buildMenuItem($menuItem)
+    {
+        $item = [
+            'id' => $menuItem->id,
+            'name' => $menuItem->name,
+            'url' => $menuItem->url,
+            'parent_id' => $menuItem->parent_id,
+            'created_at' => $menuItem->created_at,
+            'updated_at' => $menuItem->updated_at,
+        ];
+
+        if ($menuItem->relationLoaded('children')) {
+            $item['children'] = $menuItem->children->map(function ($child) {
+                return $this->buildMenuItem($child);
+            });
+        }
+
+        return $item;
     }
 }
